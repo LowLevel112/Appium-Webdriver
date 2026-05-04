@@ -1,91 +1,54 @@
 const path = require('path');
 const fs = require('fs');
 
-// Inject ANDROID_HOME nếu chưa có (chỉ dùng cho local)
 if (!process.env.ANDROID_HOME) {
     process.env.ANDROID_HOME = 'C:\\Users\\WINDOWS\\AppData\\Local\\Android\\Sdk';
 }
 
 const apkPath = path.resolve(process.cwd(), 'apps', 'ApiDemos-debug.apk');
-const ipaPath = path.resolve(process.cwd(), 'apps', 'ApiDemos.ipa'); // Giả định có file ipa sau này
 
 exports.config = {
     runner: 'local',
     port: 4723,
     path: '/',
     specs: ['./test/specs/**/*.e2e.js'],
-    maxInstances: 2, // Chạy song song nếu có nhiều thiết bị
     
-    // Cấu hình Timeout tối ưu
-    waitforTimeout: 15000,
+    // ĐẢM BẢO CHỈ CHẠY 1 FILE TẠI 1 THỜI ĐIỂM
+    maxInstances: 1, 
+
+    capabilities: [{
+        platformName: 'Android',
+        'appium:automationName': 'UiAutomator2',
+        'appium:deviceName': 'Android Emulator',
+        'appium:app': apkPath,
+        'appium:appPackage': 'io.appium.android.apis',
+        'appium:appActivity': 'io.appium.android.apis.ApiDemos',
+        'appium:newCommandTimeout': 300, // Tăng thời gian chờ lệnh lên 5 phút
+        'appium:autoGrantPermissions': true,
+        'appium:adbExecTimeout': 60000,   // Tăng timeout cho các lệnh ADB (tránh lỗi 'error: closed')
+    }],
+
+    logLevel: 'error',
+    waitforTimeout: 20000,
     connectionRetryTimeout: 120000,
-    connectionRetryCount: 1,
-
-    capabilities: [
-        // 1. Android Emulator (Mặc định)
-        {
-            platformName: 'Android',
-            'appium:automationName': 'UiAutomator2',
-            'appium:deviceName': process.env.DEVICE_NAME || 'Android Emulator',
-            'appium:app': apkPath,
-            'appium:newCommandTimeout': 60,
-            'appium:autoGrantPermissions': true
-        }
-        /* 
-        // 2. Android Real Device (Bỏ comment khi dùng máy thật)
-        ,{
-            platformName: 'Android',
-            'appium:automationName': 'UiAutomator2',
-            'appium:deviceName': 'Android Device', // Appium tự nhận diện nếu để generic
-            'appium:app': apkPath,
-            'appium:noReset': false
-        }
-        // 3. iOS Real Device
-        ,{
-            platformName: 'iOS',
-            'appium:automationName': 'XCUITest',
-            'appium:deviceName': 'iPhone',
-            'appium:udid': process.env.IOS_UDID || 'auto',
-            'appium:app': ipaPath,
-            'appium:xcodeOrgId': 'YOUR_TEAM_ID', // Cần thiết cho máy thật
-            'appium:xcodeSigningId': 'iPhone Developer'
-        }
-        */
-    ],
-
-    logLevel: 'info',
+    connectionRetryCount: 2, // Tăng số lần thử lại nếu kết nối lỗi
+    services: ['appium'],
     framework: 'mocha',
-    reporters: [
-        'spec',
-        ['allure', {
-            outputDir: 'allure-results',
-            disableWebdriverStepsReporting: true,
-            disableWebdriverScreenshotsReporting: false,
-        }]
-    ],
-    mochaOpts: {
-        ui: 'bdd',
-        timeout: 120000,
-        retries: 1 // Tự động chạy lại nếu test bị fail (flaky test)
-    },
+    reporters: ['spec', ['allure', { outputDir: 'allure-results' }]],
+    mochaOpts: { ui: 'bdd', timeout: 120000, retries: 1 },
 
-    // HOOKS
     afterTest: async function (test, context, { error, result, duration, passed, retries }) {
         if (!passed) {
-            // Chụp ảnh màn hình khi test fail
             const timestamp = new Date().getTime();
-            const filepath = path.join(__dirname, './logs/screenshots', `fail_${test.title}_${timestamp}.png`);
-            if (!fs.existsSync(path.dirname(filepath))) {
-                fs.mkdirSync(path.dirname(filepath), { recursive: true });
+            const screenshotPath = path.resolve(process.cwd(), 'logs', 'screenshots');
+            if (!fs.existsSync(screenshotPath)) {
+                fs.mkdirSync(screenshotPath, { recursive: true });
             }
-            await browser.saveScreenshot(filepath);
+            const safeTitle = test.title.replace(/[<>:"/\\|?*]/g, '_');
+            await browser.saveScreenshot(path.join(screenshotPath, `fail_${safeTitle}_${timestamp}.png`));
         }
-    },
-
-    before: function () {
-        // Kiểm tra APK trước khi chạy
-        if (this.capabilities[0].platformName === 'Android' && !fs.existsSync(apkPath)) {
-            throw new Error(`APK không tồn tại tại: ${apkPath}`);
-        }
+        // Quay về Home sau mỗi test case để đảm bảo test tiếp theo bắt đầu từ màn hình chính
+        await browser.terminateApp('io.appium.android.apis');
+        await browser.activateApp('io.appium.android.apis');
     }
 };

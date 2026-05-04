@@ -18,13 +18,13 @@ describe('ApiDemos - Alert Dialog', () => {
     // 4. Kiểm tra message hiển thị trên Dialog
     // Sử dụng XPath tìm theo nội dung text (vì text "Lorem ipsum" là duy nhất trên màn hình lúc này)
     const dialogMessage = await $('//*[contains(@text, "Lorem ipsum")]');
-    
+
     // Đợi message xuất hiện
     await dialogMessage.waitForDisplayed({ timeout: 10000 });
-    
+
     const text = await dialogMessage.getText();
     console.log('Nội dung thực tế trên màn hình:', text);
-    
+
     // Kiểm tra nội dung
     await expect(dialogMessage).toHaveText(expect.stringContaining('Lorem ipsum'));
 
