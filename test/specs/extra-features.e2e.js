@@ -1,49 +1,157 @@
+/**
+ * EXTRA FEATURES TEST SUITE
+ * 
+ * Test Cases:
+ * 1. Screen rotation handling
+ * 2. Text input with keyboard management
+ * 
+ * Purpose: Additional test coverage for UI interactions
+ */
+
+// ============================================
+// IMPORTS
+// ============================================
+const {
+  TIMEOUT_MEDIUM,
+  TIMEOUT_SHORT,
+  PAUSE_MEDIUM,
+  PAUSE_LONG,
+  SELECTORS,
+  TEST_DATA,
+  ORIENTATION_LANDSCAPE,
+  ORIENTATION_PORTRAIT,
+  APP_PACKAGE,
+} = require('../helpers/constants');
+
+const {
+  restartApp,
+  waitAndClick,
+  enterText,
+  dismissKeyboard,
+  changeOrientation,
+  log,
+} = require('../helpers/testHelpers');
+
+// ============================================
+// TEST SUITE
+// ============================================
 describe('ApiDemos - Extra Features', () => {
 
-    // Đảm bảo mỗi test case bắt đầu từ màn hình chính
-    beforeEach(async () => {
-        await driver.terminateApp('io.appium.android.apis');
-        await driver.activateApp('io.appium.android.apis');
-    });
+  /**
+   * HOOK: beforeEach
+   * 
+   * Restart app trước mỗi test
+   * Đảm bảo clean state
+   */
+  beforeEach(async () => {
+    await restartApp();
+  });
 
-    it('should test screen rotation', async () => {
-        const appMenu = await $('//android.widget.TextView[@content-desc="App"]');
-        await appMenu.waitForDisplayed({ timeout: 10000 });
-        await appMenu.click();
+  /**
+   * TEST CASE 1: Screen Rotation
+   * 
+   * Verify app handle screen rotation gracefully
+   * Similar to advanced-features nhưng thêm longer pause
+   */
+  it('should test screen rotation', async () => {
+    log('Extra Test 1: Screen Rotation - START', 'INFO');
+    
+    // Navigate to App menu
+    await waitAndClick(
+      SELECTORS.APP_MENU,
+      TIMEOUT_MEDIUM,
+      'Opened App menu'
+    );
 
-        await browser.setOrientation('LANDSCAPE');
-        await browser.pause(2000);
-        expect(await browser.getOrientation()).toBe('LANDSCAPE');
+    // Rotate to LANDSCAPE
+    // Pause PAUSE_LONG (3s) - để đảm bảo app fully rotated
+    await changeOrientation(ORIENTATION_LANDSCAPE, PAUSE_LONG);
+    expect(await browser.getOrientation()).toBe(ORIENTATION_LANDSCAPE);
 
-        await browser.setOrientation('PORTRAIT');
-        await browser.pause(2000);
-        expect(await browser.getOrientation()).toBe('PORTRAIT');
-    });
+    // Rotate back to PORTRAIT
+    await changeOrientation(ORIENTATION_PORTRAIT, PAUSE_LONG);
+    expect(await browser.getOrientation()).toBe(ORIENTATION_PORTRAIT);
+    
+    log('Extra Test 1: Screen Rotation - PASSED ✓', 'INFO');
+  });
 
-    it('should test text input in Views Controls', async () => {
-        const viewsMenu = await $('//android.widget.TextView[@content-desc="Views"]');
-        await viewsMenu.waitForDisplayed({ timeout: 10000 });
-        await viewsMenu.click();
+  /**
+   * TEST CASE 2: Text Input with Keyboard Management
+   * 
+   * Verify:
+   * - Keyboard shows when focusing input
+   * - Text input works correctly
+   * - Keyboard can be dismissed
+   * 
+   * Navigate: Views > Controls > Light Theme
+   */
+  it('should test text input in Views Controls', async () => {
+    log('Extra Test 2: Text Input - START', 'INFO');
+    
+    // Step 1: Navigate to Views > Controls > Light Theme
+    // Click Views menu
+    await waitAndClick(
+      SELECTORS.VIEWS_MENU,
+      TIMEOUT_MEDIUM,
+      'Opened Views menu'
+    );
 
-        const controlsMenu = await $('//android.widget.TextView[@content-desc="Controls"]');
-        await controlsMenu.waitForDisplayed({ timeout: 10000 });
-        await controlsMenu.click();
+    // Click Controls submenu
+    await waitAndClick(
+      SELECTORS.CONTROLS_MENU,
+      TIMEOUT_MEDIUM, // Longer timeout than advanced-features
+      'Opened Controls menu'
+    );
 
-        const lightTheme = await $('//android.widget.TextView[@content-desc="1. Light Theme"]');
-        await lightTheme.waitForDisplayed({ timeout: 10000 });
-        await lightTheme.click();
+    // Click Light Theme
+    await waitAndClick(
+      SELECTORS.LIGHT_THEME,
+      TIMEOUT_MEDIUM,
+      'Selected Light Theme'
+    );
 
-        // Sử dụng XPath chuẩn và chờ element sẵn sàng
-        const editField = await $('//android.widget.EditText[@resource-id="io.appium.android.apis:id/edit"]');
-        await editField.waitForDisplayed({ timeout: 10000 });
-        
-        const testData = 'Appium Automation';
-        await editField.setValue(testData);
+    // ========================================
+    // Step 2: Text Input
+    // ========================================
+    
+    const testText = TEST_DATA.TEXT_INPUT_EXTRA; // 'Appium Automation'
+    
+    // Enter text vào field
+    await enterText(
+      SELECTORS.EDIT_TEXT,
+      testText,
+      TIMEOUT_SHORT
+    );
 
-        expect(await editField.getText()).toBe(testData);
+    // ========================================
+    // Step 3: Verify Keyboard & Text
+    // ========================================
+    
+    // Get text từ field
+    const textField = await $(SELECTORS.EDIT_TEXT);
+    const enteredText = await textField.getText();
+    
+    // Verify text
+    expect(enteredText).toBe(testText);
+    log(`Text input verified: "${enteredText}"`, 'INFO');
 
-        if (await browser.isKeyboardShown()) {
-            await browser.hideKeyboard();
-        }
-    });
+    // Check keyboard showing
+    const keyboardShown = await browser.isKeyboardShown();
+    log(`Keyboard shown: ${keyboardShown}`, 'INFO');
+
+    // ========================================
+    // Step 4: Dismiss Keyboard
+    // ========================================
+    
+    if (keyboardShown) {
+      await dismissKeyboard();
+      
+      // Verify keyboard hidden
+      const keyboardHidden = !(await browser.isKeyboardShown());
+      expect(keyboardHidden).toBe(true);
+      log('Keyboard dismissed successfully', 'INFO');
+    }
+    
+    log('Extra Test 2: Text Input - PASSED ✓', 'INFO');
+  });
 });
