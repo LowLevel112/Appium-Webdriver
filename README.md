@@ -110,6 +110,18 @@ npm run test:realme
 - Tắt/bật USB debugging
 - Restart adb: `adb kill-server && adb start-server`
 
+### Trên BrowserStack Cloud
+
+1. Set `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY` in `.env`.
+2. Upload your app to BrowserStack App Automate and set `BROWSERSTACK_APP_URL`.
+3. Run:
+
+```bash
+npm run test:bs
+```
+
+> BrowserStack tests use `wdio.browserstack.conf.js` and the BrowserStack service.
+
 ## 📊 View Test Reports
 
 ### Generate Allure Report
