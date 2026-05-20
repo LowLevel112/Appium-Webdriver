@@ -9,8 +9,22 @@ require('dotenv').config();
 
 const path = require('path');
 
+const browserstackUsername = process.env.BROWSERSTACK_USERNAME;
+const browserstackAccessKey = process.env.BROWSERSTACK_ACCESS_KEY;
+const browserstackAppUrl = process.env.BROWSERSTACK_APP_URL;
+const browserstackLocalEnabled = process.env.BROWSERSTACK_LOCAL === 'true';
+
+if (!browserstackUsername || !browserstackAccessKey) {
+  throw new Error('BrowserStack credentials are required. Set BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY in .env');
+}
+
+if (!browserstackAppUrl) {
+  throw new Error('BrowserStack app URL is required. Set BROWSERSTACK_APP_URL in .env (bs://<app-id>)');
+}
+
 exports.config = {
   runner: 'local',
+  protocol: 'https',
   hostname: 'hub.browserstack.com',
   port: 443,
   path: '/wd/hub',
@@ -22,10 +36,10 @@ exports.config = {
     {
       platformName: process.env.BROWSERSTACK_PLATFORM_NAME || 'Android',
       'appium:automationName': 'UiAutomator2',
-      'appium:app': process.env.BROWSERSTACK_APP_URL,
+      'appium:app': browserstackAppUrl,
       'bstack:options': {
-        userName: process.env.BROWSERSTACK_USERNAME,
-        accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
+        userName: browserstackUsername,
+        accessKey: browserstackAccessKey,
         deviceName: process.env.BROWSERSTACK_DEVICE_NAME || 'Google Pixel 7',
         osVersion: process.env.BROWSERSTACK_PLATFORM_VERSION || '14.0',
         projectName: process.env.BROWSERSTACK_PROJECT || 'Appium WebdriverIO',
@@ -33,12 +47,12 @@ exports.config = {
         sessionName: process.env.BROWSERSTACK_SESSION || 'Android App Test',
         appiumVersion: '2.0.0',
         autoGrantPermissions: true,
-        browserstackLocal: true,
+        local: browserstackLocalEnabled,
       },
     },
   ],
 
-  services: [['browserstack', { browserstackLocal: true }]],
+  services: [['browserstack', { browserstackLocal: browserstackLocalEnabled }]],
 
   logLevel: 'info',
   waitforTimeout: 20000,
