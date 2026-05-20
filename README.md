@@ -49,8 +49,10 @@ Appium/
 
 ### Biến Environment
 Phải có các biến sau trên system:
-- `ANDROID_HOME` hoặc `ANDROID_SDK_ROOT`
+- `ANDROID_HOME` hoặc `ANDROID_SDK_ROOT` phải trỏ tới Android SDK thực tế
 - `PATH` phải có `platform-tools` (chứa `adb`)
+
+> Lưu ý: Không để giá trị placeholder như `C:\Users\YOUR_USER\AppData\Local\Android\Sdk` trong `.env`.
 
 ### Setup trên Windows
 
@@ -112,8 +114,8 @@ npm run test:realme
 
 ### Trên BrowserStack Cloud
 
-1. Set `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY` in `.env`.
-2. Upload your app to BrowserStack App Automate and set `BROWSERSTACK_APP_URL`.
+1. Set `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY` in `.env` with your real BrowserStack account credentials.
+2. Upload your app to BrowserStack App Automate and set `BROWSERSTACK_APP_URL` to the returned `bs://...` URL.
 3. Run:
 
 ```bash
@@ -121,6 +123,11 @@ npm run test:bs
 ```
 
 > BrowserStack tests use `wdio.browserstack.conf.js` and the BrowserStack service.
+
+If you get a `401 Unauthorized` or `Invalid username or password` error, confirm that:
+- `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY` are correct.
+- `BROWSERSTACK_APP_URL` is the valid BrowserStack app upload URL.
+- `.env` does not contain placeholder values like `YOUR_BROWSERSTACK_USERNAME`, `YOUR_BROWSERSTACK_ACCESS_KEY`, or `x`.
 
 ## 📊 View Test Reports
 

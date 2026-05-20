@@ -26,13 +26,55 @@ const {
 // ============================================
 // ANDROID HOME CONFIGURATION
 // ============================================
-// Thiết lập ANDROID_HOME nếu chưa được set trong environment
-if (!process.env.ANDROID_HOME) {
-    process.env.ANDROID_HOME = 'C:\\Users\\WINDOWS\\AppData\\Local\\Android\\Sdk';
+const PLACEHOLDER_PATTERNS = [
+  'YOUR_USER',
+  'YOUR_ANDROID_SDK_PATH',
+  'YOUR_BROWSERSTACK_USERNAME',
+  'YOUR_BROWSERSTACK_ACCESS_KEY',
+  'YOUR_BROWSERSTACK_APP_URL',
+  'bs://<app-id>',
+  '<app-id>',
+  'x',
+  'xxxx',
+];
+
+function isPlaceholder(value) {
+  if (!value || typeof value !== 'string') {
+    return true;
+  }
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) {
+    return true;
+  }
+  return PLACEHOLDER_PATTERNS.some((pattern) => normalized.includes(pattern.toLowerCase()));
 }
+
+const androidSdkRoot = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
+if (!androidSdkRoot) {
+  throw new Error(
+    'ANDROID_HOME or ANDROID_SDK_ROOT is required. Set the path to your installed Android SDK in .env or your system environment.'
+  );
+}
+if (isPlaceholder(androidSdkRoot)) {
+  throw new Error(
+    'ANDROID_HOME / ANDROID_SDK_ROOT appears to be a placeholder. Set it to your real Android SDK path and do not use C:\\Users\\YOUR_USER\\AppData\\Local\\Android\\Sdk.'
+  );
+}
+if (!fs.existsSync(androidSdkRoot)) {
+  throw new Error(
+    `The Android SDK root folder '${androidSdkRoot}' does not exist. Verify ANDROID_HOME or ANDROID_SDK_ROOT points to a valid SDK installation.`
+  );
+}
+process.env.ANDROID_HOME = androidSdkRoot;
+process.env.ANDROID_SDK_ROOT = androidSdkRoot;
 
 // Resolve đường dẫn tới APK file cần test
 const apkPath = path.resolve(process.cwd(), 'apps', 'ApiDemos-debug.apk');
+if (!fs.existsSync(apkPath)) {
+  throw new Error(
+    `APK not found at ${apkPath}. Run 'npm run apk:download' or place the app under apps/ApiDemos-debug.apk.`
+  );
+}
 
 // ============================================
 // EMULATOR CAPABILITIES

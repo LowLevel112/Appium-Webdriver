@@ -9,17 +9,38 @@ require('dotenv').config();
 
 const path = require('path');
 
-const browserstackUsername = process.env.BROWSERSTACK_USERNAME;
-const browserstackAccessKey = process.env.BROWSERSTACK_ACCESS_KEY;
-const browserstackAppUrl = process.env.BROWSERSTACK_APP_URL;
-const browserstackLocalEnabled = process.env.BROWSERSTACK_LOCAL === 'true';
+const placeholderValues = [
+  'YOUR_BROWSERSTACK_USERNAME',
+  'YOUR_BROWSERSTACK_ACCESS_KEY',
+  'YOUR_BROWSERSTACK_APP_URL',
+  'bs://<app-id>',
+  '<app-id>',
+  'x',
+  'xxxx',
+];
 
-if (!browserstackUsername || !browserstackAccessKey) {
-  throw new Error('BrowserStack credentials are required. Set BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY in .env');
+function validateBrowserStackEnvVar(name, value) {
+  const trimmed = value ? value.trim() : '';
+  if (!trimmed) {
+    throw new Error(`${name} is required. Set ${name} in .env with your BrowserStack credentials.`);
+  }
+
+  const normalized = trimmed.toUpperCase();
+  const isPlaceholder = placeholderValues.some((placeholder) => normalized.includes(placeholder.toUpperCase()));
+  if (isPlaceholder) {
+    throw new Error(`${name} appears to be a placeholder value. Replace it with your actual BrowserStack value in .env.`);
+  }
+
+  return trimmed;
 }
 
-if (!browserstackAppUrl) {
-  throw new Error('BrowserStack app URL is required. Set BROWSERSTACK_APP_URL in .env (bs://<app-id>)');
+const browserstackUsername = validateBrowserStackEnvVar('BROWSERSTACK_USERNAME', process.env.BROWSERSTACK_USERNAME);
+const browserstackAccessKey = validateBrowserStackEnvVar('BROWSERSTACK_ACCESS_KEY', process.env.BROWSERSTACK_ACCESS_KEY);
+const browserstackAppUrl = validateBrowserStackEnvVar('BROWSERSTACK_APP_URL', process.env.BROWSERSTACK_APP_URL);
+const browserstackLocalEnabled = (process.env.BROWSERSTACK_LOCAL || 'false').toLowerCase() === 'true';
+
+if (!browserstackAppUrl.startsWith('bs://')) {
+  throw new Error('BROWSERSTACK_APP_URL must start with bs:// and point to your uploaded BrowserStack app URL.');
 }
 
 exports.config = {
