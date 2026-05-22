@@ -53,7 +53,7 @@ const AUTOMATION_ENGINE = 'UiAutomator2';
 // DEVICE IDENTIFIERS
 // ============================================
 /** UDID của thiết bị thật Realme 5 (lấy từ env variable hoặc default) */
-const REAL_DEVICE_UDID = process.env.UDID || '673bb926';
+const REAL_DEVICE_UDID = process.env.UDID || '';
 
 /** Platform version của Realme 5 */
 const REAL_DEVICE_PLATFORM_VERSION = '10.0';
