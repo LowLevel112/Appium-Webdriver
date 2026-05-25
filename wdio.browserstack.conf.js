@@ -51,7 +51,7 @@ exports.config = {
   path: '/wd/hub',
 
   specs: ['./test/specs/**/*.e2e.js'],
-  maxInstances: 1,
+  maxInstances: 2,
 
   capabilities: [
     {
@@ -77,7 +77,7 @@ exports.config = {
 
   logLevel: 'info',
   waitforTimeout: 20000,
-  connectionRetryTimeout: 120000,
+  connectionRetryTimeout: 180000,
   connectionRetryCount: 3,
 
   framework: 'mocha',

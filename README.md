@@ -114,20 +114,29 @@ npm run test:realme
 
 ### Trên BrowserStack Cloud
 
-1. Set `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY` in `.env` with your real BrowserStack account credentials.
-2. Upload your app to BrowserStack App Automate and set `BROWSERSTACK_APP_URL` to the returned `bs://...` URL.
-3. Run:
+**Điều kiện cần:**
+- Đăng ký tài khoản BrowserStack (https://www.browserstack.com/app-automate)
+- Upload APK lên BrowserStack App Automate
+- Lấy BrowserStack credentials từ Account Settings
 
+**Bước 1: Điền credentials vào `.env`**
+```bash
+BROWSERSTACK_USERNAME=your-username
+BROWSERSTACK_ACCESS_KEY=your-access-key
+BROWSERSTACK_APP_URL=bs://<app-id-from-upload>
+```
+
+**Bước 2: Chạy test**
 ```bash
 npm run test:bs
 ```
 
-> BrowserStack tests use `wdio.browserstack.conf.js` and the BrowserStack service.
+**Nếu gặp lỗi:**
+- `401 Unauthorized`: Kiểm tra username/access key có đúng không
+- `Invalid app URL`: Kiểm tra app URL có bắt đầu bằng `bs://` không
+- Placeholder values detected: Xóa giá trị placeholder khỏi `.env`
 
-If you get a `401 Unauthorized` or `Invalid username or password` error, confirm that:
-- `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY` are correct.
-- `BROWSERSTACK_APP_URL` is the valid BrowserStack app upload URL.
-- `.env` does not contain placeholder values like `YOUR_BROWSERSTACK_USERNAME`, `YOUR_BROWSERSTACK_ACCESS_KEY`, or `x`.
+**Chi tiết:** Xem [docs/BROWSERSTACK_SETUP.md](docs/BROWSERSTACK_SETUP.md) để hướng dẫn chi tiết.
 
 ## 📊 View Test Reports
 
